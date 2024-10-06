@@ -5,6 +5,10 @@
 
 using namespace std;
 
+// @brief コンソール画面にフォーマット付きの文字列を表示
+// @param printf 形式の format
+// @param 可変長引数
+// @remarks この関数はデバッグ用です。デバッグ時にしか動作しません。
 void DebugOutputFormatString(const char* format, ...)
 {
 #ifdef _DEBUG
