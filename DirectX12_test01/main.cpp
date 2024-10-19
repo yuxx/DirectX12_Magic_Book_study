@@ -1,8 +1,14 @@
 #include <Windows.h>
 #include <tchar.h>
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <vector>
 #ifdef _DEBUG
 #include <iostream>
 #endif // _DEBUG
+
+#pragma comment(lib, "d3d12.lib")
+#pragma comment(lib, "dxgi.lib")
 
 using namespace std;
 
@@ -30,8 +36,54 @@ LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 	return DefWindowProc(hwnd, msg, wparam, lparam);
 }
 
-const unsigned int window_width = 1280;
-const unsigned int window_height = 720;
+constexpr unsigned int window_width = 1280;
+constexpr unsigned int window_height = 720;
+
+ID3D12Device* _dev = nullptr;
+IDXGIFactory6* _dxgiFactory = nullptr;
+IDXGISwapChain4* _swapchain = nullptr;
+
+void InitDirect3DDevice()
+{
+	D3D_FEATURE_LEVEL featureLevels[] = {
+		D3D_FEATURE_LEVEL_12_2,
+		D3D_FEATURE_LEVEL_12_1,
+		D3D_FEATURE_LEVEL_12_0,
+		D3D_FEATURE_LEVEL_11_1,
+		D3D_FEATURE_LEVEL_11_0
+	};
+	D3D_FEATURE_LEVEL detectedFeatureLevel;
+	for (auto fl : featureLevels) {
+		if (SUCCEEDED(D3D12CreateDevice(nullptr, fl, IID_PPV_ARGS(&_dev)))) {
+			detectedFeatureLevel = fl;
+			break;
+		}
+	}
+}
+
+void SetAdapter(IDXGIAdapter* tmpAdapter)
+{
+	std::vector<IDXGIAdapter*> adapters;
+	for (int i = 0; _dxgiFactory->EnumAdapters(i, &tmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
+	{
+		adapters.push_back(tmpAdapter);
+	}
+
+	for (auto adapter: adapters)
+	{
+		DXGI_ADAPTER_DESC adapterDesc = {};
+		adapter->GetDesc(&adapterDesc);
+
+		std::wstring desc = adapterDesc.Description;
+
+		if (desc.find(L"NVIDIA") != std::string::npos)
+		{
+			tmpAdapter = adapter;
+			printf("NVIDIA Video card found!");
+			break;
+		}
+	}
+}
 
 #ifdef _DEBUG
 int main()
@@ -40,7 +92,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 {
 	DebugOutputFormatString("Show window test.");
-//	getchar();
 	WNDCLASSEX w = {};
 
 	w.cbSize = sizeof(WNDCLASSEX);
@@ -67,6 +118,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		w.hInstance,
 		nullptr
 	);
+
+	InitDirect3DDevice();
+
+	auto result = CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory));
+	IDXGIAdapter* tmpAdapter = nullptr;
+	SetAdapter(tmpAdapter);
 
 	ShowWindow(hwnd, SW_SHOW);
 
