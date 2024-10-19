@@ -69,7 +69,7 @@ void SetAdapter(IDXGIAdapter* tmpAdapter)
 		adapters.push_back(tmpAdapter);
 	}
 
-	for (auto adapter: adapters)
+	for (const auto adapter: adapters)
 	{
 		DXGI_ADAPTER_DESC adapterDesc = {};
 		adapter->GetDesc(&adapterDesc);
