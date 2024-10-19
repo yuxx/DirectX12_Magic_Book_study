@@ -101,9 +101,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	RegisterClassEx(&w);
 
-	RECT wrect = { 0, 0, window_width, window_height };
+	RECT windowRect = { 0, 0, window_width, window_height };
 
-	AdjustWindowRect(&wrect, WS_OVERLAPPEDWINDOW, false);
+	AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
 
 	HWND hwnd = CreateWindow(
 		w.lpszClassName,
@@ -111,8 +111,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		wrect.right - wrect.left,
-		wrect.bottom - wrect.top,
+		windowRect.right - windowRect.left,
+		windowRect.bottom - windowRect.top,
 		nullptr,
 		nullptr,
 		w.hInstance,
