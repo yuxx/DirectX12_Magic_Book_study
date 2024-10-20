@@ -79,7 +79,7 @@ void SetAdapter(IDXGIAdapter* tmpAdapter)
 		if (desc.find(L"NVIDIA") != std::string::npos)
 		{
 			tmpAdapter = adapter;
-			printf("NVIDIA Video card found!");
+			printf("NVIDIA Video card found!\n");
 			break;
 		}
 	}
@@ -91,7 +91,7 @@ int main()
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 #endif // _DEBUG
 {
-	DebugOutputFormatString("Show window test.");
+	DebugOutputFormatString("Show window test.\n");
 	WNDCLASSEX w = {};
 
 	w.cbSize = sizeof(WNDCLASSEX);
