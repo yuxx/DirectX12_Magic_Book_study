@@ -1,0 +1,6 @@
+*.c diff=sjis
+*.cpp diff=sjis
+*.h diff=sjis
+*.c diff=cp932
+*.cpp diff=cp932
+*.h diff=cp932
