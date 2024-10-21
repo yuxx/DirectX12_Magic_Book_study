@@ -169,6 +169,43 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -1;
 	}
 
+	// Note: スワップチェインの作成
+	DXGI_SWAP_CHAIN_DESC1 swapchainDesc = {};
+
+	swapchainDesc.Width = window_width;
+	swapchainDesc.Height = window_height;
+	swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapchainDesc.Stereo = false;
+	swapchainDesc.SampleDesc.Count = 1;
+	swapchainDesc.SampleDesc.Quality = 0;
+	swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+	swapchainDesc.BufferCount = 2;
+
+	// note: バックバッファは伸び縮み可能
+	swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
+
+	// note: フリップ後は速やかに破棄
+	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+	// note: アルファモードの指定は特にない
+	swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+
+	// note: window <-> fullscreen 切り替え可能
+	swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	result = _dxgiFactory->CreateSwapChainForHwnd(
+		_commandQueue,
+		hwnd,
+		&swapchainDesc,
+		nullptr,
+		nullptr,
+		(IDXGISwapChain1**)&_swapchain
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateSwapChainForHwnd Error : 0x%x\n", result);
+		return -1;
+	}
+
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg = {};
