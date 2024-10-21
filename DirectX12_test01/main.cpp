@@ -61,7 +61,7 @@ void InitDirect3DDevice()
 	}
 }
 
-void SetAdapter(IDXGIAdapter* tmpAdapter)
+void SetDXGIAdapter(IDXGIAdapter* tmpAdapter)
 {
 	std::vector<IDXGIAdapter*> adapters;
 	for (int i = 0; _dxgiFactory->EnumAdapters(i, &tmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
@@ -123,7 +123,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	auto result = CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory));
 	IDXGIAdapter* tmpAdapter = nullptr;
-	SetAdapter(tmpAdapter);
+	SetDXGIAdapter(tmpAdapter);
 
 	ShowWindow(hwnd, SW_SHOW);
 
