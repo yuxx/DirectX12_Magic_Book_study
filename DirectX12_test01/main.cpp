@@ -136,6 +136,48 @@ bool CreateD3D12CommandQueue(
 	return true;
 }
 
+bool CreateD3D12SwapChain(
+	DXGI_SWAP_CHAIN_DESC1& swapchainDesc,
+	ID3D12CommandQueue* commandQueue,
+	HWND hwnd
+) {
+	swapchainDesc.Width = window_width;
+	swapchainDesc.Height = window_height;
+	swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapchainDesc.Stereo = false;
+	swapchainDesc.SampleDesc.Count = 1;
+	swapchainDesc.SampleDesc.Quality = 0;
+	swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
+	swapchainDesc.BufferCount = 2;
+
+	// note: バックバッファは伸び縮み可能
+	swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
+
+	// note: フリップ後は速やかに破棄
+	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
+	// note: アルファモードの指定は特にない
+	swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
+
+	// note: window <-> fullscreen 切り替え可能
+	swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	auto result = _dxgiFactory->CreateSwapChainForHwnd(
+		commandQueue,
+		hwnd,
+		&swapchainDesc,
+		nullptr,
+		nullptr,
+		(IDXGISwapChain1**)&_swapchain
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateSwapChainForHwnd Error : 0x%x\n", result);
+		return false;
+	}
+
+	return true;
+}
+
 #ifdef _DEBUG
 int main()
 #else
@@ -189,41 +231,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -2;
 	}
 
-	// Note: スワップチェインの作成
 	DXGI_SWAP_CHAIN_DESC1 swapchainDesc = {};
-
-	swapchainDesc.Width = window_width;
-	swapchainDesc.Height = window_height;
-	swapchainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapchainDesc.Stereo = false;
-	swapchainDesc.SampleDesc.Count = 1;
-	swapchainDesc.SampleDesc.Quality = 0;
-	swapchainDesc.BufferUsage = DXGI_USAGE_BACK_BUFFER;
-	swapchainDesc.BufferCount = 2;
-
-	// note: バックバッファは伸び縮み可能
-	swapchainDesc.Scaling = DXGI_SCALING_STRETCH;
-
-	// note: フリップ後は速やかに破棄
-	swapchainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-
-	// note: アルファモードの指定は特にない
-	swapchainDesc.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED;
-
-	// note: window <-> fullscreen 切り替え可能
-	swapchainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-	result = _dxgiFactory->CreateSwapChainForHwnd(
-		_commandQueue,
-		hwnd,
-		&swapchainDesc,
-		nullptr,
-		nullptr,
-		(IDXGISwapChain1**)&_swapchain
-	);
-	if (FAILED(result)) {
-		DebugOutputFormatString("CreateSwapChainForHwnd Error : 0x%x\n", result);
-		return -1;
+	if (!CreateD3D12SwapChain(swapchainDesc, _commandQueue, hwnd))
+	{
+		return -3;
 	}
 
 	ShowWindow(hwnd, SW_SHOW);
