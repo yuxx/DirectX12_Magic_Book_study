@@ -112,6 +112,30 @@ bool CreateD3D12CommandListAndAllocator(
 	return true;
 }
 
+bool CreateD3D12CommandQueue(
+	ID3D12CommandQueue** commandQueue,
+	D3D12_COMMAND_QUEUE_DESC& commandQueueDesc
+) {
+	// note: タイムアウトなし
+	commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	// note: アダプターを1つしか使わない場合は0で問題ない
+	commandQueueDesc.NodeMask = 0;
+	// note: プライオリティ指定は特になし
+	commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
+	// note: タイプをコマンドリストと合わせる
+	commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	// note: キューを生成
+	auto result = _dev->CreateCommandQueue(
+		&commandQueueDesc,
+		IID_PPV_ARGS(commandQueue)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommandQueue Error : 0x%x\n", result);
+		return false;
+	}
+	return true;
+}
+
 #ifdef _DEBUG
 int main()
 #else
@@ -159,25 +183,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -1;
 	}
 
-	// Note: コマンドキュー
 	ID3D12CommandQueue* _commandQueue = nullptr;
-	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
-	// note: タイムアウトなし
-	commandQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	// note: アダプターを1つしか使わない場合は0で問題ない
-	commandQueueDesc.NodeMask = 0;
-	// note: プライオリティ指定は特になし
-	commandQueueDesc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;
-	// note: タイプをコマンドリストと合わせる
-	commandQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	// note: キューを生成
-	result = _dev->CreateCommandQueue(
-		&commandQueueDesc,
-		IID_PPV_ARGS(&_commandQueue)
-	);
-	if (FAILED(result)) {
-		DebugOutputFormatString("CreateCommandQueue Error : 0x%x\n", result);
-		return -1;
+	D3D12_COMMAND_QUEUE_DESC _commandQueueDesc = {};
+	if (!CreateD3D12CommandQueue(&_commandQueue, _commandQueueDesc)) {
+		return -2;
 	}
 
 	// Note: スワップチェインの作成
