@@ -85,6 +85,33 @@ void SetDXGIAdapter(IDXGIAdapter* tmpAdapter)
 	}
 }
 
+bool CreateD3D12CommandListAndAllocator(
+	ID3D12CommandAllocator* commandAllocator,
+	ID3D12GraphicsCommandList* commandList
+) {
+	auto result = _dev->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(&commandAllocator)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommandAllocator Error : 0x%x\n", result);
+		return false;
+	}
+	result = _dev->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		commandAllocator,
+		nullptr,
+		IID_PPV_ARGS(&commandList)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommandList Error : 0x%x\n", result);
+		return false;
+	}
+
+	return true;
+}
+
 #ifdef _DEBUG
 int main()
 #else
@@ -125,26 +152,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	IDXGIAdapter* tmpAdapter = nullptr;
 	SetDXGIAdapter(tmpAdapter);
 
-	// Note: DirectX12 のコマンドリストとアロケータを作成
 	ID3D12CommandAllocator* _commandAllocator = nullptr;
 	ID3D12GraphicsCommandList* _commandList = nullptr;
-	result = _dev->CreateCommandAllocator(
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(&_commandAllocator)
-	);
-	if (FAILED(result)) {
-		DebugOutputFormatString("CreateCommandAllocator Error : 0x%x\n", result);
-		return -1;
-	}
-	result = _dev->CreateCommandList(
-		0,
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		_commandAllocator,
-		nullptr,
-		IID_PPV_ARGS(&_commandList)
-	);
-	if (FAILED(result)) {
-		DebugOutputFormatString("CreateCommandList Error : 0x%x\n", result);
+	if (!CreateD3D12CommandListAndAllocator(_commandAllocator, _commandList))
+	{
 		return -1;
 	}
 
