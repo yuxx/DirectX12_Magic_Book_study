@@ -237,6 +237,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -3;
 	}
 
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	heapDesc.NodeMask = 0;
+	heapDesc.NumDescriptors = 2;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	ID3D12DescriptorHeap* _rtvHeap = nullptr;
+	result = _dev->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&_rtvHeap));
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateDescriptorHeap Error : 0x%x\n", result);
+		return -4;
+	}
+
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg = {};
