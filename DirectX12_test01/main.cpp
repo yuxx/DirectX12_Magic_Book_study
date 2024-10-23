@@ -178,6 +178,23 @@ bool CreateD3D12SwapChain(
 	return true;
 }
 
+bool CreateD3D12DescriptorHeap(
+	ID3D12DescriptorHeap** rtvHeap,
+	D3D12_DESCRIPTOR_HEAP_DESC& heapDesc
+) {
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	heapDesc.NodeMask = 0;
+	heapDesc.NumDescriptors = 2;
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	auto result = _dev->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(rtvHeap));
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateDescriptorHeap Error : 0x%x\n", result);
+		return false;
+	}
+
+	return true;
+}
+
 #ifdef _DEBUG
 int main()
 #else
@@ -238,14 +255,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	heapDesc.NodeMask = 0;
-	heapDesc.NumDescriptors = 2;
-	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 	ID3D12DescriptorHeap* _rtvHeap = nullptr;
-	result = _dev->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&_rtvHeap));
-	if (FAILED(result)) {
-		DebugOutputFormatString("CreateDescriptorHeap Error : 0x%x\n", result);
+	if (!CreateD3D12DescriptorHeap(&_rtvHeap, heapDesc))
+	{
 		return -4;
 	}
 
