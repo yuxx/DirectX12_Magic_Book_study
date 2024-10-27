@@ -261,6 +261,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -4;
 	}
 
+	// Note: ディスクリプタとスワップチェーン上のバックバッファを関連付ける
+	DXGI_SWAP_CHAIN_DESC swapchainDesc = {};
+	result = _swapchain->GetDesc(&swapchainDesc);
+	if (FAILED(result)) {
+		DebugOutputFormatString("GetDesc Error : 0x%x\n", result);
+		return -5;
+	}
+	std::vector<ID3D12Resource*> _backBuffers(swapchainDesc.BufferCount);
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	for (size_t i = 0; i < swapchainDesc.BufferCount; ++i) {
+		result = _swapchain->GetBuffer(i, IID_PPV_ARGS(&_backBuffers[i]));
+		if (FAILED(result)) {
+			DebugOutputFormatString("GetBuffer Error : 0x%x\n", result);
+			return -6;
+		}
+		_dev->CreateRenderTargetView(_backBuffers[i], nullptr, rtvHandle);
+		rtvHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
+
+
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg = {};
