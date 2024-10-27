@@ -255,8 +255,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-	ID3D12DescriptorHeap* _rtvHeap = nullptr;
-	if (!CreateD3D12DescriptorHeap(&_rtvHeap, heapDesc))
+	ID3D12DescriptorHeap* rtvHeap = nullptr;
+	if (!CreateD3D12DescriptorHeap(&rtvHeap, heapDesc))
 	{
 		return -4;
 	}
