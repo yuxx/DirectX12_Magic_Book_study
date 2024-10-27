@@ -248,8 +248,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -2;
 	}
 
-	DXGI_SWAP_CHAIN_DESC1 swapchainDesc = {};
-	if (!CreateD3D12SwapChain(swapchainDesc, _commandQueue, hwnd))
+	DXGI_SWAP_CHAIN_DESC1 swapchainDesc1 = {};
+	if (!CreateD3D12SwapChain(swapchainDesc1, _commandQueue, hwnd))
 	{
 		return -3;
 	}
