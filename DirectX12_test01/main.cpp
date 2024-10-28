@@ -310,7 +310,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	InitDirect3DDevice();
 
-	auto result = CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory));
+#ifdef _DEBUG
+	CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&_dxgiFactory));
+#else
+	CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory));
+#endif
 	IDXGIAdapter* tmpAdapter = nullptr;
 	SetDXGIAdapter(&tmpAdapter);
 
