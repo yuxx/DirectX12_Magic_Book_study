@@ -302,6 +302,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		if (msg.message == WM_QUIT) {
 			break;
 		}
+
+		// Note: DirectXの処理
+		auto backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
+		ExecuteDirectXProcedure(rtvHeap, backBufferIndex, _commandList, _commandQueue, _commandAllocator);
+
+		//// Note: レンダーターゲットの設定
+		//auto rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+		//rtvHandle.ptr += backBufferIndex * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		//_commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
+
+		//// Note: 画面をクリア
+		//float clearColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+		//_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+		//_commandList->Close();
+
+		//// Note: コマンドリストの実行
+		//ID3D12CommandList* commandLists[] = { _commandList };
+		//_commandQueue->ExecuteCommandLists(1, commandLists);
+
+		//// Note: クリア
+		//if (FAILED(_commandAllocator->Reset())) {
+		//	DebugOutputFormatString("Command allocator reset Error : 0x%x\n", result);
+		//	return -6;
+		//}
+		//result = _commandList->Reset(_commandAllocator, nullptr);
+		//if (FAILED(result)) {
+		//	DebugOutputFormatString("Command list reset Error : 0x%x\n", result);
+		//	return -8;
+		//}
+
+		//_swapchain->Present(1, 0);
 	}
 
 	UnregisterClass(w.lpszClassName, w.hInstance);
