@@ -43,6 +43,19 @@ ID3D12Device* _dev = nullptr;
 IDXGIFactory6* _dxgiFactory = nullptr;
 IDXGISwapChain4* _swapchain = nullptr;
 
+void EnableDebugLayer()
+{
+	ID3D12Debug* debugLayer = nullptr;
+	auto result = D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer));
+	if (FAILED(result)) {
+		DebugOutputFormatString("D3D12GetDebugInterface Error : 0x%x\n", result);
+		return;
+	}
+	DebugOutputFormatString("DebugLayer is enabled.\n");
+	debugLayer->EnableDebugLayer();
+	debugLayer->Release();
+}
+
 void InitDirect3DDevice()
 {
 	D3D_FEATURE_LEVEL featureLevels[] = {
@@ -290,6 +303,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		w.hInstance,
 		nullptr
 	);
+
+#ifdef _DEBUG
+	EnableDebugLayer();
+#endif // _DEBUG
 
 	InitDirect3DDevice();
 
