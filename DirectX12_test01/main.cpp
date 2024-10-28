@@ -61,12 +61,12 @@ void InitDirect3DDevice()
 	}
 }
 
-void SetDXGIAdapter(IDXGIAdapter* tmpAdapter)
+void SetDXGIAdapter(IDXGIAdapter** tmpAdapter)
 {
 	std::vector<IDXGIAdapter*> adapters;
-	for (int i = 0; _dxgiFactory->EnumAdapters(i, &tmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
+	for (int i = 0; _dxgiFactory->EnumAdapters(i, tmpAdapter) != DXGI_ERROR_NOT_FOUND; ++i)
 	{
-		adapters.push_back(tmpAdapter);
+		adapters.push_back(*tmpAdapter);
 	}
 
 	for (const auto adapter: adapters)
@@ -78,7 +78,7 @@ void SetDXGIAdapter(IDXGIAdapter* tmpAdapter)
 
 		if (desc.find(L"NVIDIA") != std::string::npos)
 		{
-			tmpAdapter = adapter;
+			*tmpAdapter = adapter;
 			printf("NVIDIA Video card found!\n");
 			break;
 		}
@@ -256,7 +256,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	auto result = CreateDXGIFactory1(IID_PPV_ARGS(&_dxgiFactory));
 	IDXGIAdapter* tmpAdapter = nullptr;
-	SetDXGIAdapter(tmpAdapter);
+	SetDXGIAdapter(&tmpAdapter);
 
 	ID3D12CommandAllocator* _commandAllocator = nullptr;
 	ID3D12GraphicsCommandList* _commandList = nullptr;
