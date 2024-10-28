@@ -86,12 +86,12 @@ void SetDXGIAdapter(IDXGIAdapter** tmpAdapter)
 }
 
 bool CreateD3D12CommandListAndAllocator(
-	ID3D12CommandAllocator* commandAllocator,
-	ID3D12GraphicsCommandList* commandList
+	ID3D12CommandAllocator** commandAllocator,
+	ID3D12GraphicsCommandList** commandList
 ) {
 	auto result = _dev->CreateCommandAllocator(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(&commandAllocator)
+		IID_PPV_ARGS(commandAllocator)
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateCommandAllocator Error : 0x%x\n", result);
@@ -100,9 +100,9 @@ bool CreateD3D12CommandListAndAllocator(
 	result = _dev->CreateCommandList(
 		0,
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		commandAllocator,
+		*commandAllocator,
 		nullptr,
-		IID_PPV_ARGS(&commandList)
+		IID_PPV_ARGS(commandList)
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateCommandList Error : 0x%x\n", result);
@@ -260,7 +260,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ID3D12CommandAllocator* _commandAllocator = nullptr;
 	ID3D12GraphicsCommandList* _commandList = nullptr;
-	if (!CreateD3D12CommandListAndAllocator(_commandAllocator, _commandList))
+	if (!CreateD3D12CommandListAndAllocator(&_commandAllocator, &_commandList))
 	{
 		return -1;
 	}
@@ -288,7 +288,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	{
 		return -5;
 	}
-
 
 	ShowWindow(hwnd, SW_SHOW);
 
