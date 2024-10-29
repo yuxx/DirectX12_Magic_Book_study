@@ -236,7 +236,9 @@ bool ExecuteDirectXProcedure(
 	UINT backBufferIndex,
 	ID3D12GraphicsCommandList* _commandList,
 	ID3D12CommandQueue* _commandQueue,
-	ID3D12CommandAllocator* _commandAllocator
+	ID3D12CommandAllocator* _commandAllocator,
+	ID3D12Fence* _fence,
+	UINT64* _fenceValue
 ) {
 	// Note: レンダーターゲットの設定
 	auto rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
@@ -249,9 +251,16 @@ bool ExecuteDirectXProcedure(
 
 	_commandList->Close();
 
-	// Note: コマンドリストの実行
 	ID3D12CommandList* commandLists[] = { _commandList };
 	_commandQueue->ExecuteCommandLists(1, commandLists);
+
+	_commandQueue->Signal(_fence, ++*_fenceValue);
+	if (_fence->GetCompletedValue() != *_fenceValue) {
+		auto event = CreateEvent(nullptr, false, false, nullptr);
+		_fence->SetEventOnCompletion(*_fenceValue, event);
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
 
 	// Note: クリア
 	auto result = _commandAllocator->Reset();
@@ -349,6 +358,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -5;
 	}
 
+	ID3D12Fence* _fence = nullptr;
+	UINT64 _fenceValue = 0;
+	auto result = _dev->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateFence Error : 0x%x\n", result);
+		return -6;
+	}
+
 	ShowWindow(hwnd, SW_SHOW);
 
 	MSG msg = {};
@@ -364,7 +381,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		auto backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
-		ExecuteDirectXProcedure(rtvHeap, backBufferIndex, _commandList, _commandQueue, _commandAllocator);
+		ExecuteDirectXProcedure(
+			rtvHeap,
+			backBufferIndex,
+			_commandList,
+			_commandQueue,
+			_commandAllocator,
+			_fence,
+			&_fenceValue
+		);
 	}
 
 	UnregisterClass(w.lpszClassName, w.hInstance);
