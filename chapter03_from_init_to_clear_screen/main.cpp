@@ -208,23 +208,25 @@ bool CreateD3D12DescriptorHeap(
 	return true;
 }
 
-bool AccociateDescriptorAndBackBufferOnSwapChain(ID3D12DescriptorHeap* rtvHeap)
-{
+bool AccociateDescriptorAndBackBufferOnSwapChain(
+	ID3D12DescriptorHeap* rtvHeap,
+	std::vector<ID3D12Resource*>& backBuffers
+) {
 	DXGI_SWAP_CHAIN_DESC swapchainDesc = {};
 	auto result = _swapchain->GetDesc(&swapchainDesc);
 	if (FAILED(result)) {
 		DebugOutputFormatString("GetDesc Error : 0x%x\n", result);
 		return false;
 	}
-	std::vector<ID3D12Resource*> _backBuffers(swapchainDesc.BufferCount);
+	backBuffers.resize(swapchainDesc.BufferCount);
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	for (size_t i = 0; i < swapchainDesc.BufferCount; ++i) {
-		result = _swapchain->GetBuffer(i, IID_PPV_ARGS(&_backBuffers[i]));
+		result = _swapchain->GetBuffer(i, IID_PPV_ARGS(&backBuffers[i]));
 		if (FAILED(result)) {
 			DebugOutputFormatString("GetBuffer Error : 0x%x\n", result);
 			return false;
 		}
-		_dev->CreateRenderTargetView(_backBuffers[i], nullptr, rtvHandle);
+		_dev->CreateRenderTargetView(backBuffers[i], nullptr, rtvHandle);
 		rtvHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
 
@@ -353,7 +355,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -4;
 	}
 
-	if (!AccociateDescriptorAndBackBufferOnSwapChain(rtvHeap))
+	std::vector<ID3D12Resource*> backBuffers;
+	if (!AccociateDescriptorAndBackBufferOnSwapChain(rtvHeap, backBuffers))
 	{
 		return -5;
 	}
