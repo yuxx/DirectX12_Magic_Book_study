@@ -240,8 +240,21 @@ bool ExecuteDirectXProcedure(
 	ID3D12CommandQueue* _commandQueue,
 	ID3D12CommandAllocator* _commandAllocator,
 	ID3D12Fence* _fence,
-	UINT64* _fenceValue
+	UINT64* _fenceValue,
+	std::vector<ID3D12Resource*>& backBuffers
 ) {
+	// Note: バリアを設定
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = backBuffers[backBufferIndex];
+	barrier.Transition.Subresource = 0;
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	_commandList->ResourceBarrier(1, &barrier);
+
+
+
 	// Note: レンダーターゲットの設定
 	auto rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += backBufferIndex * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -391,7 +404,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			_commandQueue,
 			_commandAllocator,
 			_fence,
-			&_fenceValue
+			&_fenceValue,
+			backBuffers
 		);
 	}
 
