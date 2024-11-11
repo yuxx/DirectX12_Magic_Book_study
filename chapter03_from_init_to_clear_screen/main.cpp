@@ -264,8 +264,10 @@ bool ExecuteDirectXProcedure(
 	float clearColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
 	_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
+	// Note: コマンドリスト受付を終了
 	_commandList->Close();
 
+	// Note: コマンドリストを実行
 	ID3D12CommandList* commandLists[] = { _commandList };
 	_commandQueue->ExecuteCommandLists(1, commandLists);
 
@@ -289,6 +291,7 @@ bool ExecuteDirectXProcedure(
 		return false;
 	}
 
+	// Note: Flip
 	_swapchain->Present(1, 0);
 
 	return true;
@@ -396,6 +399,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			break;
 		}
 
+		// Note: DirectX の処理
 		auto backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
 		ExecuteDirectXProcedure(
 			rtvHeap,
