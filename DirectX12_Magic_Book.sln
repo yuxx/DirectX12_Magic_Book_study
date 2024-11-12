@@ -5,6 +5,8 @@ VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter03_from_init_to_clear_screen", "chapter03_from_init_to_clear_screen\chapter03_from_init_to_clear_screen.vcxproj", "{40B0592D-4F7B-4DC3-AF06-D55E823DC248}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter04_display_polygons", "chapter04_display_polygons\chapter04_display_polygons.vcxproj", "{E406CB4B-7772-4B0D-92CD-3706D21496D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{40B0592D-4F7B-4DC3-AF06-D55E823DC248}.Release|x64.Build.0 = Release|x64
 		{40B0592D-4F7B-4DC3-AF06-D55E823DC248}.Release|x86.ActiveCfg = Release|Win32
 		{40B0592D-4F7B-4DC3-AF06-D55E823DC248}.Release|x86.Build.0 = Release|Win32
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Debug|x64.ActiveCfg = Debug|x64
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Debug|x64.Build.0 = Debug|x64
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Debug|x86.ActiveCfg = Debug|Win32
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Debug|x86.Build.0 = Debug|Win32
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Release|x64.ActiveCfg = Release|x64
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Release|x64.Build.0 = Release|x64
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Release|x86.ActiveCfg = Release|Win32
+		{E406CB4B-7772-4B0D-92CD-3706D21496D8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
