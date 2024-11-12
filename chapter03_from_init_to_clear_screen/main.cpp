@@ -236,11 +236,11 @@ bool AccociateDescriptorAndBackBufferOnSwapChain(
 bool ExecuteDirectXProcedure(
 	ID3D12DescriptorHeap* rtvHeap,
 	UINT backBufferIndex,
-	ID3D12GraphicsCommandList* _commandList,
-	ID3D12CommandQueue* _commandQueue,
-	ID3D12CommandAllocator* _commandAllocator,
-	ID3D12Fence* _fence,
-	UINT64* _fenceValue,
+	ID3D12GraphicsCommandList* commandList,
+	ID3D12CommandQueue* commandQueue,
+	ID3D12CommandAllocator* commandAllocator,
+	ID3D12Fence* fence,
+	UINT64* fenceValue,
 	std::vector<ID3D12Resource*>& backBuffers
 ) {
 	// Note: バリアを設定
@@ -251,41 +251,41 @@ bool ExecuteDirectXProcedure(
 	barrier.Transition.Subresource = 0;
 	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	_commandList->ResourceBarrier(1, &barrier);
+	commandList->ResourceBarrier(1, &barrier);
 
 
 
 	// Note: レンダーターゲットの設定
 	auto rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += backBufferIndex * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	_commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
+	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
 
 	// Note: 画面をクリア
 	float clearColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
-	_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
 	// Note: コマンドリスト受付を終了
-	_commandList->Close();
+	commandList->Close();
 
 	// Note: コマンドリストを実行
-	ID3D12CommandList* commandLists[] = { _commandList };
-	_commandQueue->ExecuteCommandLists(1, commandLists);
+	ID3D12CommandList* commandLists[] = { commandList };
+	commandQueue->ExecuteCommandLists(1, commandLists);
 
-	_commandQueue->Signal(_fence, ++*_fenceValue);
-	if (_fence->GetCompletedValue() != *_fenceValue) {
+	commandQueue->Signal(fence, ++*fenceValue);
+	if (fence->GetCompletedValue() != *fenceValue) {
 		auto event = CreateEvent(nullptr, false, false, nullptr);
-		_fence->SetEventOnCompletion(*_fenceValue, event);
+		fence->SetEventOnCompletion(*fenceValue, event);
 		WaitForSingleObject(event, INFINITE);
 		CloseHandle(event);
 	}
 
 	// Note: クリア
-	auto result = _commandAllocator->Reset();
+	auto result = commandAllocator->Reset();
 	if (FAILED(result)) {
 		DebugOutputFormatString("Command allocator reset Error : 0x%x\n", result);
 		return false;
 	}
-	result = _commandList->Reset(_commandAllocator, nullptr);
+	result = commandList->Reset(commandAllocator, nullptr);
 	if (FAILED(result)) {
 		DebugOutputFormatString("Command list reset Error : 0x%x\n", result);
 		return false;
