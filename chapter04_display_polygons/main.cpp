@@ -306,7 +306,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	WNDCLASSEX w = {};
 
 	w.cbSize = sizeof(WNDCLASSEX);
-	w.lpfnWndProc = (WNDPROC)WindowProcedure;
+	w.lpfnWndProc = WindowProcedure;
 	w.lpszClassName = _T("DX12Sample");
 	w.hInstance = GetModuleHandle(nullptr);
 
