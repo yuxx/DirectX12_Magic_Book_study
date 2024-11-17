@@ -221,7 +221,7 @@ bool AccociateDescriptorAndBackBufferOnSwapChain(
 	backBuffers.resize(swapchainDesc.BufferCount);
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	for (size_t i = 0; i < swapchainDesc.BufferCount; ++i) {
-		result = _swapchain->GetBuffer(i, IID_PPV_ARGS(&backBuffers[i]));
+		result = _swapchain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&backBuffers[i]));
 		if (FAILED(result)) {
 			DebugOutputFormatString("GetBuffer Error : 0x%x\n", result);
 			return false;
@@ -307,7 +307,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	WNDCLASSEX w = {};
 
 	w.cbSize = sizeof(WNDCLASSEX);
-	w.lpfnWndProc = (WNDPROC)WindowProcedure;
+	w.lpfnWndProc = WindowProcedure;
 	w.lpszClassName = _T("DX12Sample");
 	w.hInstance = GetModuleHandle(nullptr);
 
