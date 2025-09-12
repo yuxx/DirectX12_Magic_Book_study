@@ -270,7 +270,11 @@ bool ExecuteDirectXProcedure(
 	commandList->ResourceBarrier(1, &barrier);
 
 	// Note: コマンドリスト受付を終了
-	commandList->Close();
+	HRESULT result = commandList->Close();
+	if (FAILED(result)) {
+		DebugOutputFormatString("Command list close Error : 0x%x\n", result);
+		return false;
+	}
 
 	// Note: コマンドリストを実行
 	ID3D12CommandList* commandLists[] = { commandList };
