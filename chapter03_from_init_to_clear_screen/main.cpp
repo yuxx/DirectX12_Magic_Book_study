@@ -208,7 +208,7 @@ bool CreateD3D12DescriptorHeap(
 	return true;
 }
 
-bool AccociateDescriptorAndBackBufferOnSwapChain(
+bool AssociateDescriptorAndBackBufferOnSwapChain(
 	ID3D12DescriptorHeap* rtvHeap,
 	std::vector<ID3D12Resource*>& backBuffers
 ) {
@@ -381,7 +381,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	std::vector<ID3D12Resource*> backBuffers;
-	if (!AccociateDescriptorAndBackBufferOnSwapChain(rtvHeap, backBuffers))
+	if (!AssociateDescriptorAndBackBufferOnSwapChain(rtvHeap, backBuffers))
 	{
 		return -5;
 	}
