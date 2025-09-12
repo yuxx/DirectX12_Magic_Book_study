@@ -66,7 +66,7 @@ void InitDirect3DDevice()
 		D3D_FEATURE_LEVEL_11_0
 	};
 	D3D_FEATURE_LEVEL detectedFeatureLevel;
-	for (auto fl : featureLevels) {
+	for (const auto fl : featureLevels) {
 		if (SUCCEEDED(D3D12CreateDevice(nullptr, fl, IID_PPV_ARGS(&_dev)))) {
 			detectedFeatureLevel = fl;
 			break;
