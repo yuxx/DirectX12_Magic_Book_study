@@ -92,7 +92,7 @@ void SetDXGIAdapter(IDXGIAdapter** tmpAdapter)
 		if (desc.find(L"NVIDIA") != std::string::npos)
 		{
 			*tmpAdapter = adapter;
-			printf("NVIDIA Video card found!\n");
+			DebugOutputFormatString("NVIDIA Video card found!\n");
 			break;
 		}
 	}
