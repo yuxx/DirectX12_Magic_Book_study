@@ -289,7 +289,7 @@ bool ExecuteDirectXProcedure(
 	}
 
 	// Note: ƒNƒŠƒA
-	auto result = commandAllocator->Reset();
+	result = commandAllocator->Reset();
 	if (FAILED(result)) {
 		DebugOutputFormatString("Command allocator reset Error : 0x%x\n", result);
 		return false;
