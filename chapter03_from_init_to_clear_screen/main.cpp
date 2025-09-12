@@ -220,6 +220,7 @@ bool AccociateDescriptorAndBackBufferOnSwapChain(
 	}
 	backBuffers.resize(swapchainDesc.BufferCount);
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	const size_t rtvDescriptorSize = _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	for (size_t i = 0; i < swapchainDesc.BufferCount; ++i) {
 		result = _swapchain->GetBuffer(static_cast<UINT>(i), IID_PPV_ARGS(&backBuffers[i]));
 		if (FAILED(result)) {
@@ -227,7 +228,7 @@ bool AccociateDescriptorAndBackBufferOnSwapChain(
 			return false;
 		}
 		_dev->CreateRenderTargetView(backBuffers[i], nullptr, rtvHandle);
-		rtvHandle.ptr += _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+		rtvHandle.ptr += rtvDescriptorSize;
 	}
 
 	return true;
