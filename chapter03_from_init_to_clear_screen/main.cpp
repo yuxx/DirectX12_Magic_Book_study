@@ -255,8 +255,6 @@ bool ExecuteDirectXProcedure(
 	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	commandList->ResourceBarrier(1, &barrier);
 
-
-
 	// Note: レンダーターゲットの設定
 	auto rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += backBufferIndex * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -265,6 +263,11 @@ bool ExecuteDirectXProcedure(
 	// Note: 画面をクリア
 	float clearColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+	// Note: バリアを解除する
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	commandList->ResourceBarrier(1, &barrier);
 
 	// Note: コマンドリスト受付を終了
 	commandList->Close();
