@@ -235,7 +235,6 @@ bool AccociateDescriptorAndBackBufferOnSwapChain(
 
 bool ExecuteDirectXProcedure(
 	ID3D12DescriptorHeap* rtvHeap,
-	UINT backBufferIndex,
 	ID3D12GraphicsCommandList* commandList,
 	ID3D12CommandQueue* commandQueue,
 	ID3D12CommandAllocator* commandAllocator,
@@ -243,6 +242,8 @@ bool ExecuteDirectXProcedure(
 	UINT64& fenceValue,
 	std::vector<ID3D12Resource*>& backBuffers
 ) {
+	const UINT backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
+
 	// Note: ƒoƒŠƒA‚ðÝ’è
 	D3D12_RESOURCE_BARRIER barrier = {};
 	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -400,10 +401,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		}
 
 		// Note: DirectX ‚Ìˆ—
-		auto backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
 		ExecuteDirectXProcedure(
 			rtvHeap,
-			backBufferIndex,
 			_commandList,
 			_commandQueue,
 			_commandAllocator,
