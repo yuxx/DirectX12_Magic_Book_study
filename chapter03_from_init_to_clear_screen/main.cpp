@@ -99,12 +99,12 @@ void SetDXGIAdapter(IDXGIAdapter** tmpAdapter)
 }
 
 bool CreateD3D12CommandListAndAllocator(
-	ID3D12CommandAllocator** commandAllocator,
-	ID3D12GraphicsCommandList** commandList
+	ID3D12CommandAllocator*& commandAllocator,
+	ID3D12GraphicsCommandList*& commandList
 ) {
 	auto result = _dev->CreateCommandAllocator(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(commandAllocator)
+		IID_PPV_ARGS(&commandAllocator)
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateCommandAllocator Error : 0x%x\n", result);
@@ -113,9 +113,9 @@ bool CreateD3D12CommandListAndAllocator(
 	result = _dev->CreateCommandList(
 		0,
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		*commandAllocator,
+		commandAllocator,
 		nullptr,
-		IID_PPV_ARGS(commandList)
+		IID_PPV_ARGS(&commandList)
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateCommandList Error : 0x%x\n", result);
@@ -126,7 +126,7 @@ bool CreateD3D12CommandListAndAllocator(
 }
 
 bool CreateD3D12CommandQueue(
-	ID3D12CommandQueue** commandQueue,
+	ID3D12CommandQueue*& commandQueue,
 	D3D12_COMMAND_QUEUE_DESC& commandQueueDesc
 ) {
 	// note: タイムアウトなし
@@ -140,7 +140,7 @@ bool CreateD3D12CommandQueue(
 	// note: キューを生成
 	auto result = _dev->CreateCommandQueue(
 		&commandQueueDesc,
-		IID_PPV_ARGS(commandQueue)
+		IID_PPV_ARGS(&commandQueue)
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateCommandQueue Error : 0x%x\n", result);
@@ -192,14 +192,14 @@ bool CreateD3D12SwapChain(
 }
 
 bool CreateD3D12DescriptorHeap(
-	ID3D12DescriptorHeap** rtvHeap,
+	ID3D12DescriptorHeap*& rtvHeap,
 	D3D12_DESCRIPTOR_HEAP_DESC& heapDesc
 ) {
 	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	heapDesc.NodeMask = 0;
 	heapDesc.NumDescriptors = 2;
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	auto result = _dev->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(rtvHeap));
+	auto result = _dev->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&rtvHeap));
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateDescriptorHeap Error : 0x%x\n", result);
 		return false;
@@ -240,7 +240,7 @@ bool ExecuteDirectXProcedure(
 	ID3D12CommandQueue* commandQueue,
 	ID3D12CommandAllocator* commandAllocator,
 	ID3D12Fence* fence,
-	UINT64* fenceValue,
+	UINT64& fenceValue,
 	std::vector<ID3D12Resource*>& backBuffers
 ) {
 	// Note: バリアを設定
@@ -271,10 +271,10 @@ bool ExecuteDirectXProcedure(
 	ID3D12CommandList* commandLists[] = { commandList };
 	commandQueue->ExecuteCommandLists(1, commandLists);
 
-	commandQueue->Signal(fence, ++*fenceValue);
-	if (fence->GetCompletedValue() != *fenceValue) {
+	commandQueue->Signal(fence, ++fenceValue);
+	if (fence->GetCompletedValue() != fenceValue) {
 		auto event = CreateEvent(nullptr, false, false, nullptr);
-		fence->SetEventOnCompletion(*fenceValue, event);
+		fence->SetEventOnCompletion(fenceValue, event);
 		WaitForSingleObject(event, INFINITE);
 		CloseHandle(event);
 	}
@@ -347,14 +347,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ID3D12CommandAllocator* _commandAllocator = nullptr;
 	ID3D12GraphicsCommandList* _commandList = nullptr;
-	if (!CreateD3D12CommandListAndAllocator(&_commandAllocator, &_commandList))
+	if (!CreateD3D12CommandListAndAllocator(_commandAllocator, _commandList))
 	{
 		return -1;
 	}
 
 	ID3D12CommandQueue* _commandQueue = nullptr;
 	D3D12_COMMAND_QUEUE_DESC _commandQueueDesc = {};
-	if (!CreateD3D12CommandQueue(&_commandQueue, _commandQueueDesc)) {
+	if (!CreateD3D12CommandQueue(_commandQueue, _commandQueueDesc)) {
 		return -2;
 	}
 
@@ -366,7 +366,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	ID3D12DescriptorHeap* rtvHeap = nullptr;
-	if (!CreateD3D12DescriptorHeap(&rtvHeap, heapDesc))
+	if (!CreateD3D12DescriptorHeap(rtvHeap, heapDesc))
 	{
 		return -4;
 	}
@@ -408,7 +408,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			_commandQueue,
 			_commandAllocator,
 			_fence,
-			&_fenceValue,
+			_fenceValue,
 			backBuffers
 		);
 	}
