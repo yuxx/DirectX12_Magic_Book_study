@@ -236,6 +236,17 @@ bool AssociateDescriptorAndBackBufferOnSwapChain(
 	return true;
 }
 
+bool SetupFence(UINT64 &_fenceValue, ID3D12Fence* _fence)
+{
+	auto result = _dev->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateFence Error : 0x%x\n", result);
+		return false;
+	}
+
+	return true;
+}
+
 bool ExecuteDirectXProcedure(
 	ID3D12DescriptorHeap* rtvHeap,
 	ID3D12GraphicsCommandList* commandList,
@@ -390,9 +401,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ID3D12Fence* _fence = nullptr;
 	UINT64 _fenceValue = 0;
-	auto result = _dev->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
-	if (FAILED(result)) {
-		DebugOutputFormatString("CreateFence Error : 0x%x\n", result);
+	if (!SetupFence(_fenceValue, _fence)) {
 		return -6;
 	}
 
@@ -423,7 +432,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	resourceDescription.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
 	ID3D12Resource* vertexBuffer = nullptr;
-	result = _dev->CreateCommittedResource(
+	auto result = _dev->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&resourceDescription,
