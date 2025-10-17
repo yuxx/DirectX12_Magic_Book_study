@@ -2,6 +2,7 @@
 #include <tchar.h>
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <DirectXMath.h>
 #include <vector>
 #ifdef _DEBUG
 #include <iostream>
@@ -11,6 +12,7 @@
 #pragma comment(lib, "dxgi.lib")
 
 using namespace std;
+using namespace DirectX;
 
 // @brief コンソール画面にフォーマット付きの文字列を表示
 // @param printf 形式の format
@@ -395,6 +397,44 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	ShowWindow(hwnd, SW_SHOW);
+
+	XMFLOAT3 vertices[] = {
+		{-1.0f, -1.0f, 0.0f},
+		{-1.0f,  1.0f, 0.0f},
+		{ 1.0f, -1.0f, 0.0f},
+	};
+
+	D3D12_HEAP_PROPERTIES heapProperties = {};
+
+	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+	D3D12_RESOURCE_DESC resourceDescription = {};
+
+	resourceDescription.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	resourceDescription.Width = sizeof(vertices); // 頂点情報が入るだけのサイズ
+	resourceDescription.Height = 1;
+	resourceDescription.DepthOrArraySize = 1;
+	resourceDescription.MipLevels = 1;
+	resourceDescription.Format = DXGI_FORMAT_UNKNOWN;
+	resourceDescription.SampleDesc.Count = 1;
+	resourceDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
+	resourceDescription.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+
+	ID3D12Resource* vertexBuffer = nullptr;
+	result = _dev->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDescription,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&vertexBuffer)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommittedResource Error : 0x%x\n", result);
+		return -7;
+	}
 
 	MSG msg = {};
 
