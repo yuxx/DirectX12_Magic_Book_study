@@ -369,8 +369,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ID3D12CommandAllocator* _commandAllocator = nullptr;
 	ID3D12GraphicsCommandList* _commandList = nullptr;
-	if (!CreateD3D12CommandListAndAllocator(_commandAllocator, _commandList))
-	{
+	if (!CreateD3D12CommandListAndAllocator(_commandAllocator, _commandList)) {
 		return -1;
 	}
 
@@ -381,21 +380,18 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	DXGI_SWAP_CHAIN_DESC1 swapchainDesc1 = {};
-	if (!CreateD3D12SwapChain(swapchainDesc1, _commandQueue, hwnd))
-	{
+	if (!CreateD3D12SwapChain(swapchainDesc1, _commandQueue, hwnd)) {
 		return -3;
 	}
 
 	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 	ID3D12DescriptorHeap* rtvHeap = nullptr;
-	if (!CreateD3D12DescriptorHeap(rtvHeap, heapDesc))
-	{
+	if (!CreateD3D12DescriptorHeap(rtvHeap, heapDesc)) {
 		return -4;
 	}
 
 	std::vector<ID3D12Resource*> backBuffers;
-	if (!AssociateDescriptorAndBackBufferOnSwapChain(rtvHeap, backBuffers))
-	{
+	if (!AssociateDescriptorAndBackBufferOnSwapChain(rtvHeap, backBuffers)) {
 		return -5;
 	}
 
