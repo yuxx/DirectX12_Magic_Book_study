@@ -248,7 +248,7 @@ bool SetupFence(UINT64 &_fenceValue, ID3D12Fence* _fence)
 }
 
 template <size_t N>
-bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N])
+bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N], ID3D12Resource* vertexBuffer)
 {
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 
@@ -268,7 +268,6 @@ bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N])
 	resourceDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
 	resourceDescription.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 
-	ID3D12Resource* vertexBuffer = nullptr;
 	auto result = _dev->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
@@ -446,8 +445,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		{-1.0f,  1.0f, 0.0f},
 		{ 1.0f, -1.0f, 0.0f},
 	};
+	ID3D12Resource* vertexBuffer = nullptr;
 
-	if (!SetupVertexBuffer(vertices)) {
+	if (!SetupVertexBuffer(vertices, vertexBuffer)) {
 		return -7;
 	}
 
