@@ -465,6 +465,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	vertexBufferView.StrideInBytes = sizeof(vertices[0]);
 
 	ID3D10Blob* vsBlob = nullptr;
+	ID3D10Blob* psBlob = nullptr;
 	ID3D10Blob* errorBlob = nullptr;
 
 	result = D3DCompileFromFile(
@@ -496,6 +497,37 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			errorMessage.c_str()
 		);
 		return -8;
+	}
+
+	result = D3DCompileFromFile(
+		L"BasicPixelShader.hlsl",
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"BasicPS",
+		"ps_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		0,
+		&psBlob,
+		nullptr
+	);
+	if (FAILED(result)) {
+		if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+			DebugOutputFormatString("Pixel Shader File not found.\n");
+			return -9;
+		}
+		std::string errorMessage;
+		errorMessage.resize(errorBlob->GetBufferSize());
+		std::copy_n(
+			static_cast<const char*>(errorBlob->GetBufferPointer()),
+			errorBlob->GetBufferSize(),
+			errorMessage.begin()
+		);
+		errorMessage += "\n";
+		DebugOutputFormatString(
+			"D3DCompileFromFile Pixel Shader Error : 0x%x\n",
+			errorMessage.c_str()
+		);
+		return -9;
 	}
 
 	MSG msg = {};
