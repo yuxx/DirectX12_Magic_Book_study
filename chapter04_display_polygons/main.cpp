@@ -456,6 +456,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	std::copy(std::begin(vertices), std::end(vertices), verticesMap);
 	vertexBuffer->Unmap(0, nullptr);
 
+
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
+	vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
+	vertexBufferView.SizeInBytes = sizeof(vertices);
+	vertexBufferView.StrideInBytes = sizeof(vertices[0]);
+
+
 	MSG msg = {};
 
 	while (true) {
