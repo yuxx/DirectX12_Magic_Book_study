@@ -236,9 +236,9 @@ bool AssociateDescriptorAndBackBufferOnSwapChain(
 	return true;
 }
 
-bool SetupFence(UINT64 &_fenceValue, ID3D12Fence* _fence)
+bool SetupFence(UINT64 &_fenceValue, ID3D12Fence** _fence)
 {
-	auto result = _dev->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_fence));
+	auto result = _dev->CreateFence(_fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(_fence));
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateFence Error : 0x%x\n", result);
 		return false;
@@ -248,7 +248,7 @@ bool SetupFence(UINT64 &_fenceValue, ID3D12Fence* _fence)
 }
 
 template <size_t N>
-bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N], ID3D12Resource* vertexBuffer)
+bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N], ID3D12Resource** vertexBuffer)
 {
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 
@@ -274,7 +274,7 @@ bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N], ID3D12Resource* vertexBuff
 		&resourceDescription,
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
-		IID_PPV_ARGS(&vertexBuffer)
+		IID_PPV_ARGS(vertexBuffer)
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateCommittedResource Error : 0x%x\n", result);
@@ -434,7 +434,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ID3D12Fence* _fence = nullptr;
 	UINT64 _fenceValue = 0;
-	if (!SetupFence(_fenceValue, _fence)) {
+	if (!SetupFence(_fenceValue, &_fence)) {
 		return -6;
 	}
 
@@ -447,7 +447,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	};
 	ID3D12Resource* vertexBuffer = nullptr;
 
-	if (!SetupVertexBuffer(vertices, vertexBuffer)) {
+	if (!SetupVertexBuffer(vertices, &vertexBuffer)) {
 		return -7;
 	}
 
