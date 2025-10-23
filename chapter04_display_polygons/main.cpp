@@ -451,6 +451,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -7;
 	}
 
+	XMFLOAT3* verticesMap = nullptr;
+	auto result = vertexBuffer->Map(0, nullptr, (void**)&verticesMap);
+	std::copy(std::begin(vertices), std::end(vertices), verticesMap);
+	vertexBuffer->Unmap(0, nullptr);
+
 	MSG msg = {};
 
 	while (true) {
