@@ -4,12 +4,14 @@
 #include <dxgi1_6.h>
 #include <DirectXMath.h>
 #include <vector>
+#include <d3dcompiler.h>
 #ifdef _DEBUG
 #include <iostream>
 #endif // _DEBUG
 
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "d3dcompiler.lib")
 
 using namespace std;
 using namespace DirectX;
@@ -462,6 +464,39 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	vertexBufferView.SizeInBytes = sizeof(vertices);
 	vertexBufferView.StrideInBytes = sizeof(vertices[0]);
 
+	ID3D10Blob* vsBlob = nullptr;
+	ID3D10Blob* errorBlob = nullptr;
+
+	result = D3DCompileFromFile(
+		L"BasicVertexShader.hlsl",
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"BasicVS",
+		"vs_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		0,
+		&vsBlob,
+		&errorBlob
+	);
+	if (FAILED(result)) {
+		if (result == HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND)) {
+			DebugOutputFormatString("Vertex Shader File not found.\n");
+			return -10;
+		}
+		std::string errorMessage;
+		errorMessage.resize(errorBlob->GetBufferSize());
+		std::copy_n(
+			static_cast<const char*>(errorBlob->GetBufferPointer()),
+			errorBlob->GetBufferSize(),
+			errorMessage.begin()
+		);
+		errorMessage += "\n";
+		DebugOutputFormatString(
+			"D3DCompileFromFile Vertex Shader Error : 0x%x\n",
+			errorMessage.c_str()
+		);
+		return -8;
+	}
 
 	MSG msg = {};
 
