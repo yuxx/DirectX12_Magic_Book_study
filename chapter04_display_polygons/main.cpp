@@ -126,6 +126,9 @@ bool CreateD3D12CommandListAndAllocator(
 		return false;
 	}
 
+	// note: コマンドリストは生成直後にクローズしておく必要がある
+	commandList->Close();
+
 	return true;
 }
 
