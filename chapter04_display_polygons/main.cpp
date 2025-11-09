@@ -296,55 +296,17 @@ bool ExecuteDirectXProcedure(
 	ID3D12CommandAllocator* commandAllocator,
 	ID3D12Fence* fence,
 	UINT64& fenceValue,
-	std::vector<ID3D12Resource*>& backBuffers
+	std::vector<ID3D12Resource*>& backBuffers,
+	ID3D12PipelineState* pipelineState,
+	ID3D12RootSignature* rootSignature,
+	const D3D12_VIEWPORT& viewport,
+	const D3D12_RECT& scissorRect,
+	const D3D12_VERTEX_BUFFER_VIEW& vertexBufferView
 ) {
 	const UINT backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
 
-	// Note: バリアを設定
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = backBuffers[backBufferIndex];
-	barrier.Transition.Subresource = 0;
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	commandList->ResourceBarrier(1, &barrier);
-
-	// Note: レンダーターゲットの設定
-	auto rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
-	rtvHandle.ptr += backBufferIndex * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
-
-	// Note: 画面をクリア
-	float clearColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
-	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-	// Note: バリアを解除する
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	commandList->ResourceBarrier(1, &barrier);
-
-	// Note: コマンドリスト受付を終了
-	HRESULT result = commandList->Close();
-	if (FAILED(result)) {
-		DebugOutputFormatString("Command list close Error : 0x%x\n", result);
-		return false;
-	}
-
-	// Note: コマンドリストを実行
-	ID3D12CommandList* commandLists[] = { commandList };
-	commandQueue->ExecuteCommandLists(1, commandLists);
-
-	commandQueue->Signal(fence, ++fenceValue);
-	if (fence->GetCompletedValue() != fenceValue) {
-		auto event = CreateEvent(nullptr, false, false, nullptr);
-		fence->SetEventOnCompletion(fenceValue, event);
-		WaitForSingleObject(event, INFINITE);
-		CloseHandle(event);
-	}
-
 	// Note: クリア
-	result = commandAllocator->Reset();
+	HRESULT result = commandAllocator->Reset();
 	if (FAILED(result)) {
 		DebugOutputFormatString("Command allocator reset Error : 0x%x\n", result);
 		return false;
@@ -355,8 +317,65 @@ bool ExecuteDirectXProcedure(
 		return false;
 	}
 
+	// Note: レンダーターゲットの設定
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += backBufferIndex * _dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	// Note: バリアを設定
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition = {
+		backBuffers[backBufferIndex],
+		0,
+		D3D12_RESOURCE_STATE_PRESENT,
+		D3D12_RESOURCE_STATE_RENDER_TARGET
+	};
+	commandList->ResourceBarrier(1, &barrier);
+
+	commandList->OMSetRenderTargets(1, &rtvHandle, true, nullptr);
+
+	// Note: 画面をクリア
+	float clearColor[] = { 1.0f, 1.0f, 0.0f, 1.0f };
+	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
+	commandList->SetPipelineState(pipelineState);
+	commandList->SetGraphicsRootSignature(rootSignature);
+	commandList->RSSetViewports(1, &viewport);
+	commandList->RSSetScissorRects(1, &scissorRect);
+
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+
+	commandList->DrawInstanced(3, 1, 0, 0);
+
+
+	// Note: バリアを解除する
+	std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
+	commandList->ResourceBarrier(1, &barrier);
+
+	// Note: コマンドリスト受付を終了
+	result = commandList->Close();
+	if (FAILED(result)) {
+		DebugOutputFormatString("Command list close Error : 0x%x\n", result);
+		return false;
+	}
+
+	// Note: コマンドリストを実行
+	ID3D12CommandList* commandLists[] = { commandList };
+	commandQueue->ExecuteCommandLists(1, commandLists);
+
 	// Note: Flip
 	_swapchain->Present(1, 0);
+
+	commandQueue->Signal(fence, ++fenceValue);
+	if (fence->GetCompletedValue() != fenceValue) {
+		auto event = CreateEvent(nullptr, false, false, nullptr);
+		fence->SetEventOnCompletion(fenceValue, event);
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
 
 	return true;
 }
@@ -533,6 +552,136 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -9;
 	}
 
+	D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
+		{
+			"POSITION",
+			0,
+			DXGI_FORMAT_R32G32B32_FLOAT,
+			0,
+			D3D12_APPEND_ALIGNED_ELEMENT,
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			0
+		},
+	};
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipeline = {};
+
+	graphicsPipeline.pRootSignature = nullptr; // 後で設定
+
+	graphicsPipeline.VS.pShaderBytecode = vsBlob->GetBufferPointer();
+	graphicsPipeline.VS.BytecodeLength = vsBlob->GetBufferSize();
+	graphicsPipeline.PS.pShaderBytecode = psBlob->GetBufferPointer();
+	graphicsPipeline.PS.BytecodeLength = psBlob->GetBufferSize();
+
+	// デフォルトのサンプルマスクを表す定数(0xffffffff)
+	graphicsPipeline.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+
+	// まだアンチエイリアスは使わないため false
+	graphicsPipeline.RasterizerState.AntialiasedLineEnable = false;
+
+	// カリングしない
+	graphicsPipeline.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	// 中身を塗りつぶす
+	graphicsPipeline.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	// 深度方向のクリッピングは有効に
+	graphicsPipeline.RasterizerState.DepthClipEnable = true;
+
+	graphicsPipeline.BlendState.AlphaToCoverageEnable = false;
+	graphicsPipeline.BlendState.IndependentBlendEnable = false;
+
+	D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc = {};
+	renderTargetBlendDesc.BlendEnable = false;
+	renderTargetBlendDesc.LogicOpEnable = false;
+	renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+
+	graphicsPipeline.BlendState.RenderTarget[0] = renderTargetBlendDesc;
+
+	graphicsPipeline.InputLayout.pInputElementDescs = inputLayout;
+	graphicsPipeline.InputLayout.NumElements = _countof(inputLayout);
+
+	// トライアングルストリップのカットなし
+	graphicsPipeline.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+
+	// 三角形で構成
+	graphicsPipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	graphicsPipeline.NumRenderTargets = 1;
+	// 0～1 に正規化された RGBA
+	graphicsPipeline.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	// サンプリングは1ピクセルにつき1
+	graphicsPipeline.SampleDesc.Count = 1;
+	// クオリティは最低
+	graphicsPipeline.SampleDesc.Quality = 0;
+
+
+	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	ID3DBlob* rootSignatureBlob = nullptr;
+	result = D3D12SerializeRootSignature(
+		// ルートシグネチャ設定
+		&rootSignatureDesc,
+		// ルートシグネチャバージョン
+		D3D_ROOT_SIGNATURE_VERSION_1_0,
+		// シェーダーを作ったときと同じ
+		&rootSignatureBlob,
+		// エラー処理も同じ
+		&errorBlob
+	);
+
+	ID3D12RootSignature* rootSignature = nullptr;
+	result = _dev->CreateRootSignature(
+		// nodeMask。0でよい
+		0,
+		// シェーダーの時と同様
+		rootSignatureBlob->GetBufferPointer(),
+		// シェーダーの時と同様
+		rootSignatureBlob->GetBufferSize(),
+		IID_PPV_ARGS(&rootSignature)
+	);
+	// 不要になったので解放
+	rootSignatureBlob->Release();
+
+	graphicsPipeline.pRootSignature = rootSignature;
+
+
+	ID3D12PipelineState* pipelineState = nullptr;
+	result = _dev->CreateGraphicsPipelineState(
+		&graphicsPipeline,
+		IID_PPV_ARGS(&pipelineState)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateGraphicsPipelineState Error : 0x%x\n", result);
+		return -11;
+	}
+
+	D3D12_VIEWPORT viewport = {};
+
+	// 出力先の幅(ピクセル数)
+	viewport.Width = window_width;
+	// 出力先の高さ(ピクセル数)
+	viewport.Height = window_height;
+	// 出力先の左上X座標
+	viewport.TopLeftX = 0.0f;
+	// 出力先の左上Y座標
+	viewport.TopLeftY = 0.0f;
+	// 深度最大値
+	viewport.MaxDepth = 1.0f;
+	// 深度最小値
+	viewport.MinDepth = 0.0f;
+
+	D3D12_RECT scissorRect = {};
+
+	// 切り抜き上座標
+	scissorRect.top = 0;
+	// 切り抜き左座標
+	scissorRect.left = 0;
+	// 切り抜き右座標
+	scissorRect.right = scissorRect.left + window_width;
+	// 切り抜き下座標
+	scissorRect.bottom = scissorRect.top + window_height;
+
 	MSG msg = {};
 
 	while (true) {
@@ -553,7 +702,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			_commandAllocator,
 			_fence,
 			_fenceValue,
-			backBuffers
+			backBuffers,
+			pipelineState,
+			rootSignature,
+			viewport,
+			scissorRect,
+			vertexBufferView
 		);
 	}
 
