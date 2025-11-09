@@ -1,4 +1,12 @@
-float4 BasicVS( float4 pos : POSITION ) : SV_POSITION
+struct VSOut {
+    float4 svpos : SV_POSITION;
+    float4 pos : POSITION;
+};
+
+VSOut BasicVS(float4 pos : POSITION)
 {
-	return pos;
+    VSOut output;
+    output.svpos = pos;
+    output.pos = pos;
+    return output;
 }
