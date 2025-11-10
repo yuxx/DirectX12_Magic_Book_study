@@ -252,9 +252,13 @@ bool SetupFence(UINT64 &_fenceValue, ID3D12Fence** _fence)
 	return true;
 }
 
-template <size_t N>
-bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N], ID3D12Resource** vertexBuffer)
-{
+template <size_t N, size_t M>
+bool SetupVertexBuffer(
+	const XMFLOAT3 (&vertices)[N],
+	ID3D12Resource** vertexBuffer,
+	const unsigned short (&indices)[M],
+	ID3D12Resource** indexBuffer
+) {
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 
 	heapProperties.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -282,7 +286,23 @@ bool SetupVertexBuffer(const XMFLOAT3 (&vertices)[N], ID3D12Resource** vertexBuf
 		IID_PPV_ARGS(vertexBuffer)
 	);
 	if (FAILED(result)) {
-		DebugOutputFormatString("CreateCommittedResource Error : 0x%x\n", result);
+		DebugOutputFormatString("CreateCommittedResource Error (for vertices): 0x%x\n", result);
+		return false;
+	}
+
+	// 設定はバッファーのサイズ以外、頂点バッファーの設定を使いまわしてよい
+	resourceDescription.Width = sizeof(indices);
+
+	result = _dev->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDescription,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(indexBuffer)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommittedResource Error (for indices): 0x%x\n", result);
 		return false;
 	}
 
@@ -301,7 +321,8 @@ bool ExecuteDirectXProcedure(
 	ID3D12RootSignature* rootSignature,
 	const D3D12_VIEWPORT& viewport,
 	const D3D12_RECT& scissorRect,
-	const D3D12_VERTEX_BUFFER_VIEW& vertexBufferView
+	const D3D12_VERTEX_BUFFER_VIEW& vertexBufferView,
+	const D3D12_INDEX_BUFFER_VIEW& indexBufferView
 ) {
 	const UINT backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
 
@@ -344,11 +365,13 @@ bool ExecuteDirectXProcedure(
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
 
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 
-	commandList->DrawInstanced(4, 1, 0, 0);
+	commandList->IASetIndexBuffer(&indexBufferView);
+
+	commandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
 
 
 	// Note: バリアを解除する
@@ -472,20 +495,46 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	};
 	ID3D12Resource* vertexBuffer = nullptr;
 
-	if (!SetupVertexBuffer(vertices, &vertexBuffer)) {
+	unsigned short indices[] = {
+		0, 1, 2,
+		2, 1, 3,
+	};
+	ID3D12Resource* indexBuffer = nullptr;
+
+	if (!SetupVertexBuffer(vertices, &vertexBuffer, indices, &indexBuffer)) {
 		return -7;
 	}
 
 	XMFLOAT3* verticesMap = nullptr;
 	auto result = vertexBuffer->Map(0, nullptr, (void**)&verticesMap);
+	if (FAILED(result)) {
+		DebugOutputFormatString("Vertex buffer map Error : 0x%x\n", result);
+		return -12;
+	}
 	std::copy(std::begin(vertices), std::end(vertices), verticesMap);
 	vertexBuffer->Unmap(0, nullptr);
-
 
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
 	vertexBufferView.BufferLocation = vertexBuffer->GetGPUVirtualAddress();
 	vertexBufferView.SizeInBytes = sizeof(vertices);
 	vertexBufferView.StrideInBytes = sizeof(vertices[0]);
+
+	// 作ったバッファーにインデックスデータをバッファーにコピー
+	unsigned short* indicesMap = nullptr;
+	result = indexBuffer->Map(0, nullptr, (void**)&indicesMap);
+	if (FAILED(result)) {
+		DebugOutputFormatString("Index buffer map Error : 0x%x\n", result);
+		return -13;
+	}
+	std::copy(std::begin(indices), std::end(indices), indicesMap);
+	indexBuffer->Unmap(0, nullptr);
+
+	// インデックスバッファービューを作成
+	D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
+
+	indexBufferView.BufferLocation = indexBuffer->GetGPUVirtualAddress();
+	indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+	indexBufferView.SizeInBytes = sizeof(indices);
 
 	ID3D10Blob* vsBlob = nullptr;
 	ID3D10Blob* psBlob = nullptr;
@@ -550,7 +599,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			"D3DCompileFromFile Pixel Shader Error : 0x%x\n",
 			errorMessage.c_str()
 		);
-		return -9;
+		return -10;
 	}
 
 	D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
@@ -708,7 +757,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			rootSignature,
 			viewport,
 			scissorRect,
-			vertexBufferView
+			vertexBufferView,
+			indexBufferView
 		);
 	}
 
