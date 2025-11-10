@@ -344,11 +344,11 @@ bool ExecuteDirectXProcedure(
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
 
-	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 
 	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
 
-	commandList->DrawInstanced(3, 1, 0, 0);
+	commandList->DrawInstanced(4, 1, 0, 0);
 
 
 	// Note: ÉoÉäÉAÇâèúÇ∑ÇÈ
@@ -465,9 +465,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	ShowWindow(hwnd, SW_SHOW);
 
 	XMFLOAT3 vertices[] = {
-		{-0.5f, -0.7f, 0.0f},
-		{ 0.0f,  0.7f, 0.0f},
-		{ 0.5f, -0.7f, 0.0f},
+		{-0.4f, -0.7f, 0.0f},
+		{-0.4f,  0.7f, 0.0f},
+		{ 0.4f, -0.7f, 0.0f},
+		{ 0.4f,  0.7f, 0.0f},
 	};
 	ID3D12Resource* vertexBuffer = nullptr;
 
