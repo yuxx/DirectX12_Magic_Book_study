@@ -60,7 +60,7 @@ void EnableDebugLayer()
 	debugLayer->Release();
 }
 
-void InitDirect3DDevice()
+void InitDirect3DDevice(D3D_FEATURE_LEVEL& detectedFeatureLevel)
 {
 	D3D_FEATURE_LEVEL featureLevels[] = {
 		D3D_FEATURE_LEVEL_12_2,
@@ -69,7 +69,6 @@ void InitDirect3DDevice()
 		D3D_FEATURE_LEVEL_11_1,
 		D3D_FEATURE_LEVEL_11_0
 	};
-	D3D_FEATURE_LEVEL detectedFeatureLevel;
 	for (const auto fl : featureLevels) {
 		if (SUCCEEDED(D3D12CreateDevice(nullptr, fl, IID_PPV_ARGS(&_dev)))) {
 			detectedFeatureLevel = fl;
@@ -441,7 +440,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	EnableDebugLayer();
 #endif // _DEBUG
 
-	InitDirect3DDevice();
+	D3D_FEATURE_LEVEL detectedFeatureLevel;
+	InitDirect3DDevice(detectedFeatureLevel);
 
 #ifdef _DEBUG
 	CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&_dxgiFactory));
