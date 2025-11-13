@@ -513,7 +513,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	}
 
 	Vertex* verticesMap = nullptr;
-	auto result = vertexBuffer->Map(0, nullptr, (void**)&verticesMap);
+	auto result = vertexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&verticesMap));
 	if (FAILED(result)) {
 		DebugOutputFormatString("Vertex buffer map Error : 0x%x\n", result);
 		return -12;
@@ -528,7 +528,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	// 作ったバッファーにインデックスデータをバッファーにコピー
 	unsigned short* indicesMap = nullptr;
-	result = indexBuffer->Map(0, nullptr, (void**)&indicesMap);
+	result = indexBuffer->Map(0, nullptr, reinterpret_cast<void**>(&indicesMap));
 	if (FAILED(result)) {
 		DebugOutputFormatString("Index buffer map Error : 0x%x\n", result);
 		return -13;
