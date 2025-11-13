@@ -36,6 +36,11 @@ struct Vertex {
 	XMFLOAT2 uv;       // uv座標
 };
 
+struct TexRGBA
+{
+	unsigned char R, G, B, A;
+};
+
 
 LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
@@ -747,6 +752,85 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	scissorRect.right = scissorRect.left + window_width;
 	// 切り抜き下座標
 	scissorRect.bottom = scissorRect.top + window_height;
+
+	std::vector<TexRGBA> textureData(256 * 256);
+	for (auto& rgba: textureData)
+	{
+		rgba.R = rand() % 256;
+		rgba.G = rand() % 256;
+		rgba.B = rand() % 256;
+		// αは表示するため1.0
+		rgba.A = 255;
+	}
+
+	// WriteToSubresource で転送するためのヒープ設定
+	D3D12_HEAP_PROPERTIES heapProperties = {};
+
+	// 特殊な設定なので DEFAULT でも UPLOAD でもない
+	heapProperties.Type = D3D12_HEAP_TYPE_CUSTOM;
+
+	// ライトバック
+	heapProperties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK;
+
+	// 転送は L0、つまり CPU 側 から直接行う
+	heapProperties.MemoryPoolPreference = D3D12_MEMORY_POOL_L0;
+
+	// 単一アダプターのため0
+	heapProperties.CreationNodeMask = 0;
+	heapProperties.VisibleNodeMask = 0;
+
+	D3D12_RESOURCE_DESC resourceDescription = {};
+
+	// RGBA フォーマット
+	resourceDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	// 幅
+	resourceDescription.Width = 256;
+	// 高さ
+	resourceDescription.Height = 256;
+	// 2D で配列でもないので1
+	resourceDescription.DepthOrArraySize = 1;
+	resourceDescription.SampleDesc = {
+		// 通常のテクスチャなのでアンチエイリアシングは使わない
+		1,
+		// クオリティは最低
+		0
+	};
+	// ミップマップしないのでミップ数は1
+	resourceDescription.MipLevels = 1;
+	// 2D テクスチャ用
+	resourceDescription.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	// レイアウトは決定しない
+	resourceDescription.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	// 特にフラグなし
+	resourceDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ID3D12Resource* textureBuffer = nullptr;
+	result = _dev->CreateCommittedResource(
+		&heapProperties,
+		// 特に指定なし
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDescription,
+		// テクスチャ用指定
+		D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+		nullptr,
+		IID_PPV_ARGS(&textureBuffer)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommittedResource Error (for texture): 0x%x\n", result);
+		return -14;
+	}
+
+	result = textureBuffer->WriteToSubresource(
+		0,
+		// 全領域に書き込む
+		nullptr,
+		// 元データアドレス
+		textureData.data(),
+		// 1ライン分のバイト数
+		sizeof(TexRGBA) * 256,
+		// 全体のバイト数
+		sizeof(TexRGBA) * textureData.size()
+	);
 
 	MSG msg = {};
 
