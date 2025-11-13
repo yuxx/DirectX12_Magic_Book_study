@@ -30,6 +30,13 @@ void DebugOutputFormatString(const char* format, ...)
 #endif // _DEBUG
 }
 
+// 頂点データ構造体
+struct Vertex {
+	XMFLOAT3 position; // xyz座標
+	XMFLOAT2 uv;       // uv座標
+};
+
+
 LRESULT WindowProcedure(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	if (msg == WM_DESTROY) {
@@ -253,7 +260,7 @@ bool SetupFence(UINT64 &_fenceValue, ID3D12Fence** _fence)
 
 template <size_t N, size_t M>
 bool SetupVertexBuffer(
-	const XMFLOAT3 (&vertices)[N],
+	const Vertex (&vertices)[N],
 	ID3D12Resource** vertexBuffer,
 	const unsigned short (&indices)[M],
 	ID3D12Resource** indexBuffer
@@ -487,11 +494,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	ShowWindow(hwnd, SW_SHOW);
 
-	XMFLOAT3 vertices[] = {
-		{-0.4f, -0.7f, 0.0f},
-		{-0.4f,  0.7f, 0.0f},
-		{ 0.4f, -0.7f, 0.0f},
-		{ 0.4f,  0.7f, 0.0f},
+	Vertex vertices[] = {
+		{{-0.4f, -0.7f, 0.0f}, {0.0f, 1.0f}},
+		{{-0.4f,  0.7f, 0.0f}, {0.0f, 0.0f}},
+		{{ 0.4f, -0.7f, 0.0f}, {1.0f, 1.0f}},
+		{{ 0.4f,  0.7f, 0.0f}, {1.0f, 0.0f}},
 	};
 	ID3D12Resource* vertexBuffer = nullptr;
 
@@ -505,7 +512,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -7;
 	}
 
-	XMFLOAT3* verticesMap = nullptr;
+	Vertex* verticesMap = nullptr;
 	auto result = vertexBuffer->Map(0, nullptr, (void**)&verticesMap);
 	if (FAILED(result)) {
 		DebugOutputFormatString("Vertex buffer map Error : 0x%x\n", result);
