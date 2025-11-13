@@ -637,8 +637,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC graphicsPipeline = {};
 
-	graphicsPipeline.pRootSignature = nullptr; // Œã‚ÅÝ’è
-
 	graphicsPipeline.VS.pShaderBytecode = vsBlob->GetBufferPointer();
 	graphicsPipeline.VS.BytecodeLength = vsBlob->GetBufferSize();
 	graphicsPipeline.PS.pShaderBytecode = psBlob->GetBufferPointer();
