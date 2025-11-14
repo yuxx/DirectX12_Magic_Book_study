@@ -829,6 +829,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// 全体のバイト数
 		sizeof(TexRGBA) * textureData.size()
 	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("WriteToSubresource Error : 0x%x\n", result);
+		return -15;
+	}
 
 	MSG msg = {};
 
