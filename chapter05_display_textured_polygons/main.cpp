@@ -743,6 +743,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// エラー処理も同じ
 		&errorBlob
 	);
+	if (FAILED(result)) {
+		std::string errorMessage;
+		errorMessage.resize(errorBlob->GetBufferSize());
+		std::copy_n(
+			static_cast<const char*>(errorBlob->GetBufferPointer()),
+			errorBlob->GetBufferSize(),
+			errorMessage.begin()
+		);
+		errorMessage += "\n";
+		DebugOutputFormatString(
+			"D3D12SerializeRootSignature Error : 0x%x\n",
+			errorMessage.c_str()
+		);
+		return -17;
+	}
 
 	ID3D12RootSignature* rootSignature = nullptr;
 	result = _dev->CreateRootSignature(
@@ -754,6 +769,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		rootSignatureBlob->GetBufferSize(),
 		IID_PPV_ARGS(&rootSignature)
 	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateRootSignature Error : 0x%x\n", result);
+		return -18;
+	}
 	// 不要になったので解放
 	rootSignatureBlob->Release();
 
