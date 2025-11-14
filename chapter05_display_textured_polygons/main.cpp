@@ -702,12 +702,35 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// ディスクリプタレンジ数
 	rootParameter.DescriptorTable.NumDescriptorRanges = 1;
 
+	D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+
+	// 線形補間
+	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	// 横方向の繰り返し
+	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	// 縦方向の繰り返し
+	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	// 奥行き方向の繰り返し
+	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	// リサンプリングしない
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+	// ボーダーカラーは使わないので透明黒
+	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	// ミップマップ最小値
+	samplerDesc.MinLOD = 0.0f;
+	// ミップマップ最大値
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	// ピクセルシェーダーから見える
+	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	rootSignatureDesc.pParameters = &rootParameter;
 	rootSignatureDesc.NumParameters = 1;
+	rootSignatureDesc.pStaticSamplers = &samplerDesc;
+	rootSignatureDesc.NumStaticSamplers = 1;
 
 	ID3DBlob* rootSignatureBlob = nullptr;
 	result = D3D12SerializeRootSignature(
