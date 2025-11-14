@@ -684,8 +684,30 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	graphicsPipeline.SampleDesc.Quality = 0;
 
 
+	D3D12_DESCRIPTOR_RANGE descriptorRange = {};
+	// 種別はテクスチャ
+	descriptorRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	// テクスチャ１つ
+	descriptorRange.NumDescriptors = 1;
+	// 0版スロットから
+	descriptorRange.BaseShaderRegister = 0;
+	descriptorRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	D3D12_ROOT_PARAMETER rootParameter = {};
+	rootParameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	// ピクセルシェーダーから見えるようにする
+	rootParameter.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	// ディスクリプタレンジのアドレス
+	rootParameter.DescriptorTable.pDescriptorRanges = &descriptorRange;
+	// ディスクリプタレンジ数
+	rootParameter.DescriptorTable.NumDescriptorRanges = 1;
+
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	rootSignatureDesc.pParameters = &rootParameter;
+	rootSignatureDesc.NumParameters = 1;
 
 	ID3DBlob* rootSignatureBlob = nullptr;
 	result = D3D12SerializeRootSignature(
@@ -858,6 +880,23 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		DebugOutputFormatString("CreateDescriptorHeap Error (for texture): 0x%x\n", result);
 		return -16;
 	}
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+
+	// RGBA (0.0f～1.0f に正規化)
+	// 本では DXGI_FORMAT_R8G8B8A8_UNORM となっているが、Copilot に従い、resourceDescription.Format を流用
+	srvDesc.Format = resourceDescription.Format;
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	// 2D テクスチャ
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	// ミップマップは使用しないので1
+	srvDesc.Texture2D.MipLevels = 1;
+
+	_dev->CreateShaderResourceView(
+		textureBuffer,
+		&srvDesc,
+		textureDescriptionHeap->GetCPUDescriptorHandleForHeapStart()
+	);
 
 	MSG msg = {};
 
