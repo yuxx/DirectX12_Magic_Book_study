@@ -834,6 +834,31 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		return -15;
 	}
 
+	ID3D12DescriptorHeap* textureDescriptionHeap = nullptr;
+	D3D12_DESCRIPTOR_HEAP_DESC textureHeapDesc = {};
+
+	// シェーダーから見えるように
+	textureHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+	// マスクは 0
+	textureHeapDesc.NodeMask = 0;
+
+	// ビューは今のところ1つだけ
+	textureHeapDesc.NumDescriptors = 1;
+
+	// シェーダーリソースビュー用
+	textureHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+
+	// 生成
+	result = _dev->CreateDescriptorHeap(
+		&textureHeapDesc,
+		IID_PPV_ARGS(&textureDescriptionHeap)
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateDescriptorHeap Error (for texture): 0x%x\n", result);
+		return -16;
+	}
+
 	MSG msg = {};
 
 	while (true) {
