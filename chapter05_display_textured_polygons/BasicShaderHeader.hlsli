@@ -5,3 +5,8 @@ struct Output
     // uv 値
     float2 uv : TEXCOORD;
 };
+
+// 0番スロットに設定されたテクスチャ
+Texture2D<float4> tex : register(t0);
+// 0番スロットに設定されたサンプラー
+SamplerState samplerState : register(s0);

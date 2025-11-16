@@ -333,7 +333,8 @@ bool ExecuteDirectXProcedure(
 	const D3D12_VIEWPORT& viewport,
 	const D3D12_RECT& scissorRect,
 	const D3D12_VERTEX_BUFFER_VIEW& vertexBufferView,
-	const D3D12_INDEX_BUFFER_VIEW& indexBufferView
+	const D3D12_INDEX_BUFFER_VIEW& indexBufferView,
+	ID3D12DescriptorHeap* textureDescriptionHeap
 ) {
 	const UINT backBufferIndex = _swapchain->GetCurrentBackBufferIndex();
 
@@ -375,6 +376,14 @@ bool ExecuteDirectXProcedure(
 	commandList->SetGraphicsRootSignature(rootSignature);
 	commandList->RSSetViewports(1, &viewport);
 	commandList->RSSetScissorRects(1, &scissorRect);
+
+	commandList->SetDescriptorHeaps(1, &textureDescriptionHeap);
+	commandList->SetGraphicsRootDescriptorTable(
+		// ルートパラメーターインデックス
+		0,
+		// ヒープアドレス
+		textureDescriptionHeap->GetGPUDescriptorHandleForHeapStart()
+	);
 
 	commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -966,7 +975,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 			viewport,
 			scissorRect,
 			vertexBufferView,
-			indexBufferView
+			indexBufferView,
+			textureDescriptionHeap
 		);
 	}
 
