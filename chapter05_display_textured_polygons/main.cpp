@@ -713,8 +713,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
 
-	// 線形補間
-	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	// // 線形補間
+	// samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	// 補間しない(ニアレストネイバー法: 最近傍補間)
+	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_POINT;
 	// 横方向の繰り返し
 	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
 	// 縦方向の繰り返し
