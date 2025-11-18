@@ -248,7 +248,13 @@ bool AssociateDescriptorAndBackBufferOnSwapChain(
 			DebugOutputFormatString("GetBuffer Error : 0x%x\n", result);
 			return false;
 		}
-		_dev->CreateRenderTargetView(backBuffers[i], nullptr, rtvHandle);
+
+		// SRGB レンダーターゲットビューを作成
+		D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+		rtvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+		rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+
+		_dev->CreateRenderTargetView(backBuffers[i], &rtvDesc, rtvHandle);
 		rtvHandle.ptr += rtvDescriptorSize;
 	}
 
@@ -829,16 +835,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 	// 切り抜き下座標
 	scissorRect.bottom = scissorRect.top + window_height;
 
-	std::vector<TexRGBA> textureData(256 * 256);
-	for (auto& rgba: textureData)
-	{
-		rgba.R = rand() % 256;
-		rgba.G = rand() % 256;
-		rgba.B = rand() % 256;
-		// αは表示するため1.0
-		rgba.A = 255;
-	}
-
 	// WriteToSubresource で転送するためのヒープ設定
 	D3D12_HEAP_PROPERTIES heapProperties = {};
 
@@ -857,24 +853,38 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	D3D12_RESOURCE_DESC resourceDescription = {};
 
+	// WIC テクスチャのロード
+	TexMetadata metadata = {};
+	ScratchImage scratchImage = {};
+
+	result = LoadFromWICFile(
+		L"img/シド・ミード.jpg",
+		WIC_FLAGS_NONE,
+		&metadata,
+		scratchImage
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("LoadFromWICFile Error : 0x%x\n", result);
+		return -19;
+	}
+	// 生データ抽出
+	auto image = scratchImage.GetImage(0, 0, 0);
+
 	// RGBA フォーマット
-	resourceDescription.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	resourceDescription.Format = metadata.format;
 	// 幅
-	resourceDescription.Width = 256;
+	resourceDescription.Width = metadata.width;
 	// 高さ
-	resourceDescription.Height = 256;
-	// 2D で配列でもないので1
-	resourceDescription.DepthOrArraySize = 1;
+	resourceDescription.Height = metadata.height;
+	resourceDescription.DepthOrArraySize = metadata.arraySize;
 	resourceDescription.SampleDesc = {
 		// 通常のテクスチャなのでアンチエイリアシングは使わない
 		1,
 		// クオリティは最低
 		0
 	};
-	// ミップマップしないのでミップ数は1
-	resourceDescription.MipLevels = 1;
-	// 2D テクスチャ用
-	resourceDescription.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	resourceDescription.MipLevels = metadata.mipLevels;
+	resourceDescription.Dimension = static_cast<D3D12_RESOURCE_DIMENSION>(metadata.dimension);
 	// レイアウトは決定しない
 	resourceDescription.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	// 特にフラグなし
@@ -901,11 +911,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 		// 全領域に書き込む
 		nullptr,
 		// 元データアドレス
-		textureData.data(),
+		image->pixels,
 		// 1ライン分のバイト数
-		sizeof(TexRGBA) * 256,
-		// 全体のバイト数
-		sizeof(TexRGBA) * textureData.size()
+		image->rowPitch,
+		// 1枚のサイズ
+		image->slicePitch
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("WriteToSubresource Error : 0x%x\n", result);
@@ -939,9 +949,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 
-	// RGBA (0.0f～1.0f に正規化)
-	// 本では DXGI_FORMAT_R8G8B8A8_UNORM となっているが、Copilot に従い、resourceDescription.Format を流用
-	srvDesc.Format = resourceDescription.Format;
+	srvDesc.Format = metadata.format;
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	// 2D テクスチャ
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
