@@ -5,6 +5,8 @@
 #include <DirectXMath.h>
 #include <vector>
 #include <d3dcompiler.h>
+#include <DirectXTex.h>
+
 #ifdef _DEBUG
 #include <iostream>
 #endif // _DEBUG
@@ -12,6 +14,7 @@
 #pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "DirectXTex.lib")
 
 using namespace std;
 using namespace DirectX;
