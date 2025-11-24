@@ -95,15 +95,15 @@ private:
 		D3D12_HEAP_PROPERTIES& textureHeapProperties,
 		D3D12_RESOURCE_DESC& resourceDescription
 	);
-	size_t AlignmentedSize(size_t size, size_t alignment);
+	static size_t AlignedSize(size_t size, size_t alignment);
 	void SetupTextureBufferLocation(
 		D3D12_TEXTURE_COPY_LOCATION& srcLocation,
 		D3D12_TEXTURE_COPY_LOCATION& dstLocation,
 		ID3D12Resource* uploadBuffer,
 		const DirectX::TexMetadata& metadata,
 		const DirectX::Image* image
-	);
-	void SetupTextureResourceBarrier(D3D12_RESOURCE_BARRIER& textureResourceBarrier);
+	) const;
+	void SetupTextureResourceBarrier(D3D12_RESOURCE_BARRIER& textureResourceBarrier) const;
 	bool LoadTexture();
 	bool MakeShaderResourceView();
 

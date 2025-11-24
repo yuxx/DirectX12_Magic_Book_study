@@ -727,7 +727,8 @@ void DirectXManager::SetupUploadHeap(
 	uploadResourceDescription.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 
 	// データサイズ
-	uploadResourceDescription.Width = image->slicePitch;
+	uploadResourceDescription.Width =
+		AlignedSize(image->slicePitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * image->height;
 	uploadResourceDescription.Height = 1;
 	uploadResourceDescription.DepthOrArraySize = 1;
 	uploadResourceDescription.MipLevels = 1;
@@ -778,6 +779,11 @@ void DirectXManager::SetupTextureHeap(
 	resourceDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
 }
 
+size_t DirectXManager::AlignedSize(size_t size, size_t alignment)
+{
+	return size + alignment - size % alignment;
+}
+
 void DirectXManager::SetupTextureBufferLocation(
 	D3D12_TEXTURE_COPY_LOCATION& srcLocation,
 	D3D12_TEXTURE_COPY_LOCATION& dstLocation,
@@ -794,7 +800,8 @@ void DirectXManager::SetupTextureBufferLocation(
 	srcLocation.PlacedFootprint.Footprint.Width = metadata.width;
 	srcLocation.PlacedFootprint.Footprint.Height = metadata.height;
 	srcLocation.PlacedFootprint.Footprint.Depth = metadata.depth;
-	srcLocation.PlacedFootprint.Footprint.RowPitch = image->rowPitch;
+	srcLocation.PlacedFootprint.Footprint.RowPitch =
+		AlignedSize(image->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 	srcLocation.PlacedFootprint.Footprint.Format = image->format;
 
 	// コピー先設定
@@ -803,9 +810,8 @@ void DirectXManager::SetupTextureBufferLocation(
 	dstLocation.SubresourceIndex = 0;
 }
 
-void DirectXManager::SetupTextureResourceBarrier(
-	D3D12_RESOURCE_BARRIER& textureResourceBarrier
-) {
+void DirectXManager::SetupTextureResourceBarrier(D3D12_RESOURCE_BARRIER& textureResourceBarrier) const
+{
 	textureResourceBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	textureResourceBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 	textureResourceBarrier.Transition.pResource = m_textureBuffer.Get();
@@ -820,7 +826,8 @@ bool DirectXManager::LoadTexture()
 	ScratchImage scratchImage{};
 
 	HRESULT result = LoadFromWICFile(
-		L"img/ティファ.jpg",
+		L"img/視力検査の気球.jpg",
+		// L"img/ティファ.jpg",
 		WIC_FLAGS_NONE,
 		&m_metadata,
 		scratchImage
