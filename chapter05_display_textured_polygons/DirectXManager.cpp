@@ -890,7 +890,19 @@ bool DirectXManager::LoadTexture()
 		DebugOutputFormatString("Upload buffer map Error : 0x%x\n", result);
 		return false;
 	}
-	std::copy_n(image->pixels, image->slicePitch, mapForImage);
+	// ピッチ修正しつつコピー
+	uint8_t* sourceAddress = image->pixels;
+	size_t rowPitch = AlignedSize(image->rowPitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+	for (size_t y = 0; y < image->height; ++y) {
+		std::copy_n(
+			sourceAddress,
+			rowPitch,
+			mapForImage
+		);
+		// 1行ごとのつじつまを合わせる
+		sourceAddress += image->rowPitch;
+		mapForImage += rowPitch;
+	}
 	uploadBuffer->Unmap(0, nullptr);
 
 	D3D12_TEXTURE_COPY_LOCATION srcLocation{};
