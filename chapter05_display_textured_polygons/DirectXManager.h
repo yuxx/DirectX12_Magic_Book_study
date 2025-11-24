@@ -96,7 +96,7 @@ private:
 		D3D12_RESOURCE_DESC& resourceDescription
 	);
 	size_t AlignmentedSize(size_t size, size_t alignment);
-	void SetupTexutureBufferLocation(
+	void SetupTextureBufferLocation(
 		D3D12_TEXTURE_COPY_LOCATION& srcLocation,
 		D3D12_TEXTURE_COPY_LOCATION& dstLocation,
 		ID3D12Resource* uploadBuffer,

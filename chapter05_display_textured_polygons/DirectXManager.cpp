@@ -778,13 +778,14 @@ void DirectXManager::SetupTextureHeap(
 	resourceDescription.Flags = D3D12_RESOURCE_FLAG_NONE;
 }
 
-void DirectXManager::SetupTexutureBufferLocation(
+void DirectXManager::SetupTextureBufferLocation(
 	D3D12_TEXTURE_COPY_LOCATION& srcLocation,
 	D3D12_TEXTURE_COPY_LOCATION& dstLocation,
 	ID3D12Resource* uploadBuffer,
 	const TexMetadata& metadata,
 	const Image* image
-) {
+) const
+{
 	// コピー元(アップロード側)設定
 	srcLocation.pResource = uploadBuffer;
 	// フットプリントを指定
@@ -887,7 +888,7 @@ bool DirectXManager::LoadTexture()
 
 	D3D12_TEXTURE_COPY_LOCATION srcLocation{};
 	D3D12_TEXTURE_COPY_LOCATION dstLocation{};
-	SetupTexutureBufferLocation(
+	SetupTextureBufferLocation(
 		srcLocation,
 		dstLocation,
 		uploadBuffer.Get(),
