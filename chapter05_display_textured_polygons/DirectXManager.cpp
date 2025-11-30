@@ -4,6 +4,7 @@
 #include <d3dcompiler.h>
 #include <tchar.h>
 #include <iostream>
+#include <d3dx12.h>
 
 #include "Helpers.h"
 
