@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter04_display_polygons"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter05_display_textured_polygons", "chapter05_display_textured_polygons\chapter05_display_textured_polygons.vcxproj", "{32D8378E-06F0-472B-B65B-5B95346C2866}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "chapter06_matrix_transformations", "chapter06_matrix_transformations\chapter06_matrix_transformations.vcxproj", "{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -41,6 +43,14 @@ Global
 		{32D8378E-06F0-472B-B65B-5B95346C2866}.Release|x64.Build.0 = Release|x64
 		{32D8378E-06F0-472B-B65B-5B95346C2866}.Release|x86.ActiveCfg = Release|Win32
 		{32D8378E-06F0-472B-B65B-5B95346C2866}.Release|x86.Build.0 = Release|Win32
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Debug|x64.ActiveCfg = Debug|x64
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Debug|x64.Build.0 = Debug|x64
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Debug|x86.ActiveCfg = Debug|Win32
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Debug|x86.Build.0 = Debug|Win32
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Release|x64.ActiveCfg = Release|x64
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Release|x64.Build.0 = Release|x64
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Release|x86.ActiveCfg = Release|Win32
+		{8A96C36B-41C4-4B85-A990-3066BD8F4ED8}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
