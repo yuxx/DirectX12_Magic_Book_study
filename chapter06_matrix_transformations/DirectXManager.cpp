@@ -118,6 +118,11 @@ bool DirectXManager::Initialize(HINSTANCE hInstance, int width, int height)
 		return false;
 	}
 
+	if (!MakeConstantBuffer()) {
+		DebugOutputFormatString("MakeConstantBuffer failed.\n");
+		return false;
+	}
+
 	ShowWindow(m_hwnd, SW_SHOW);
 
 	return true;
@@ -998,8 +1003,36 @@ bool DirectXManager::MakeShaderResourceView()
 	m_device->CreateShaderResourceView(
 		m_textureBuffer.Get(),
 		&srvDesc,
-		m_textureDescriptionHeap->GetCPUDescriptorHandleForHeapStart()
+		m_basicDescriptionHeap->GetCPUDescriptorHandleForHeapStart()
 	);
+
+	return true;
+}
+
+bool DirectXManager::MakeConstantBuffer()
+{
+	auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
+	auto resourceDesc = CD3DX12_RESOURCE_DESC::Buffer((sizeof(m_matrix) + 0xff) & ~0xff);
+	auto result = m_device->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(m_constantBuffer.ReleaseAndGetAddressOf())
+	);
+	if (FAILED(result)) {
+		DebugOutputFormatString("CreateCommittedResource Error: 0x%x\n", result);
+		return false;
+	}
+
+	XMMATRIX* mapMatrix;
+	result = m_constantBuffer->Map(0, nullptr, reinterpret_cast<void**>(&mapMatrix));
+	if (FAILED(result)) {
+		DebugOutputFormatString("Constant buffer map Error : 0x%x\n", result);
+		return false;
+	}
+	*mapMatrix = m_matrix;
 
 	return true;
 }

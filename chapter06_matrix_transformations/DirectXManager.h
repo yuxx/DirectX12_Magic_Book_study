@@ -74,6 +74,9 @@ private:
 	ComPtr<ID3D12Resource> m_textureBuffer;
 	ComPtr<ID3D12DescriptorHeap> m_textureDescriptionHeap;
 
+	ComPtr<ID3D12Resource> m_constantBuffer;
+	DirectX::XMMATRIX m_matrix = DirectX::XMMatrixIdentity();
+
 	bool MakeWindow(HINSTANCE hInstance, int width, int height);
 	bool SelectAdapter();
 	bool InitDirect3DDevice();
@@ -106,6 +109,7 @@ private:
 	void SetupTextureResourceBarrier(D3D12_RESOURCE_BARRIER& textureResourceBarrier) const;
 	bool LoadTexture();
 	bool MakeShaderResourceView();
+	bool MakeConstantBuffer();
 
 	static bool EnableDebugLayer();
 };
