@@ -967,24 +967,24 @@ bool DirectXManager::LoadTexture()
 
 bool DirectXManager::MakeShaderResourceView()
 {
-	D3D12_DESCRIPTOR_HEAP_DESC textureHeapDesc = {};
+	D3D12_DESCRIPTOR_HEAP_DESC descriptorHeapDesc = {};
 
 	// シェーダーから見えるように
-	textureHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	descriptorHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 
 	// マスクは 0
-	textureHeapDesc.NodeMask = 0;
+	descriptorHeapDesc.NodeMask = 0;
 
-	// ビューは今のところ1つだけ
-	textureHeapDesc.NumDescriptors = 1;
+	// SRV 1つと CBV 1つ分
+	descriptorHeapDesc.NumDescriptors = 2;
 
 	// シェーダーリソースビュー用
-	textureHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	descriptorHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
 	// 生成
 	HRESULT result = m_device->CreateDescriptorHeap(
-		&textureHeapDesc,
-		IID_PPV_ARGS(m_textureDescriptionHeap.ReleaseAndGetAddressOf())
+		&descriptorHeapDesc,
+		IID_PPV_ARGS(m_basicDescriptionHeap.ReleaseAndGetAddressOf())
 	);
 	if (FAILED(result)) {
 		DebugOutputFormatString("CreateDescriptorHeap Error (for texture): 0x%x\n", result);
@@ -1068,13 +1068,13 @@ bool DirectXManager::Render()
 	m_commandList->RSSetViewports(1, &m_viewport);
 	m_commandList->RSSetScissorRects(1, &m_scissorRect);
 
-	ID3D12DescriptorHeap* heaps[] = { m_textureDescriptionHeap.Get() };
+	ID3D12DescriptorHeap* heaps[] = { m_basicDescriptionHeap.Get() };
 	m_commandList->SetDescriptorHeaps(1, heaps);
 	m_commandList->SetGraphicsRootDescriptorTable(
 		// ルートパラメーターインデックス
 		0,
 		// ヒープアドレス
-		m_textureDescriptionHeap->GetGPUDescriptorHandleForHeapStart()
+		m_basicDescriptionHeap->GetGPUDescriptorHandleForHeapStart()
 	);
 
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
